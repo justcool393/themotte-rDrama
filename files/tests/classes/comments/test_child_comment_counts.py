@@ -1,7 +1,7 @@
-from . import fixture_accounts
-from . import fixture_submissions
-from . import fixture_comments
-from . import util
+from ... import fixture_accounts
+from ... import fixture_submissions
+from ... import fixture_comments
+from ... import util
 from flask import g
 from files.__main__ import app, db_session
 from files.classes import Submission, Comment, User
