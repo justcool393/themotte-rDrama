@@ -10,7 +10,7 @@ from time import time, sleep
 
 class AccountsFixture:
 	@lru_cache(maxsize=None)
-	def client_and_user_for_account(self, name):
+	def client_and_user_for_account(self, name:str, admin_level: int=0):
 		client = app.test_client()
 
 		signup_get_response = client.get("/signup")
@@ -41,10 +41,14 @@ class AccountsFixture:
 
 		assert User == type(user)
 
+		# let's haxor our user to the specified admin level
+		user.admin_level = admin_level
+		db.commit()
+
 		return client, user
 
-	def client_for_account(self, name = "default"):
-		client, user = self.client_and_user_for_account(name)
+	def client_for_account(self, name:str = "default", admin_level: int=0):
+		client, user = self.client_and_user_for_account(name, admin_level)
 		return client
 	
 	def logged_off(self):
