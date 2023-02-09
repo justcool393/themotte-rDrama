@@ -8,6 +8,7 @@ from sqlalchemy import *
 from sqlalchemy.orm import relationship, deferred
 from files.__main__ import Base, app
 from files.helpers.const import *
+from files.helpers.content import censored_text, is_publicly_visible
 from files.helpers.lazy import lazy
 from files.helpers.assetcache import assetcache_path
 from .flags import Flag
@@ -354,8 +355,14 @@ class Submission(Base):
 			if self.url.startswith('/'): return SITE_FULL + self.url
 			return self.url
 		else: return ""
+
+	def is_public(self):
+		return is_publicly_visible(self)
  
 	def realbody(self, v):
+		moderation_txt = censored_text(self, v)
+		if moderation_txt: return moderation_txt
+
 		if self.club and not (v and (v.paid_dues or v.id == self.author_id)): return f"<p>{CC} ONLY</p>"
 
 		body = self.body_html or ""
@@ -380,6 +387,9 @@ class Submission(Base):
 		return body
 
 	def plainbody(self, v):
+		moderation_txt = censored_text(self, v)
+		if moderation_txt: return moderation_txt
+
 		if self.club and not (v and (v.paid_dues or v.id == self.author_id)): return f"<p>{CC} ONLY</p>"
 
 		body = self.body

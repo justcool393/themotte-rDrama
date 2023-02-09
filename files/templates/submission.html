@@ -11,10 +11,10 @@
 	{% set score=p.score %}
 {% endif %}
 
-{% if v %}
-	{% set voted=p.voted if p.voted else 0 %}
-{% else %}
+{% if p.is_banned or not v %}
 	{% set voted=-2 %}
+{% else %}
+	{% set voted=p.voted if p.voted else 0 %}
 {% endif %}
 
 {% block title %}
@@ -133,14 +133,10 @@
 {% set cc='COUNTRY CLUB' %}
 
 <div class="row mb-3" style="background-color:var(--gray-600)">
-
 	<div id="post-root" class="col-12">
-
 		<div class="card border-0 mt-3{% if p.is_banned %} banned{% endif %}{% if p.stickied %} stickied{% endif %}{% if voted==1 %} upvoted{% elif voted==-1 %} downvoted{% endif %}">
 			<div id="post-{{p.id}}" class="{% if p.award_count('glowie') %}glow{% endif %} {% if p.deleted_utc %}deleted {% endif %}d-flex flex-row-reverse flex-nowrap justify-content-end">
-
 				<div id="post-content" class="{% if p.deleted_utc %}deleted {% endif %}card-block w-100 my-md-auto">
-
 					<div class="post-meta text-left mb-2">
 						{% if p.sub %}
 							<a href='/h/{{p.sub}}'>/h/{{p.sub}}</a>&nbsp;&nbsp;
@@ -229,61 +225,7 @@
 						</h1>
 					{% endif %}
 
-					<div id="post-body" class="post-body mt-3">
-						{% if p.realurl(v) %}
-							{% if not p.embed_url and not p.is_image and not p.is_video %}
-								<a rel="nofollow noopener noreferrer" href="{{p.realurl(v)}}" {% if not v or v.newtabexternal %}target="_blank"{% endif %}>
-									<div class="d-flex d-md-none justify-content-between align-items-center border rounded p-2{% if p.realbody(v) %} mb-3{% endif %}">
-										<span>{{p.domain|truncate(30, True)}}</span>
-										<i class="fas fa-external-link-alt text-small"></i>
-									</div>
-								</a>
-							{% endif %}
-						{% endif %}
-
-
-						{% if p.embed_url %}
-							{% if p.domain == "twitter.com" %}
-								{{p.embed_url | safe}}
-								{% if v and v.theme.split("_")[0] in ["light", "coffee", "4chan"] %}
-									<script src="{{ 'js/twitterlight.js' | asset }}"></script>
-								{% else %}
-									<script src="{{ 'js/twitter.js' | asset }}"></script>
-								{% endif %}
-							{% elif p.domain in ['youtu.be','youtube.com'] and p.embed_url and p.embed_url.startswith('<lite-youtube') %}
-								{{p.embed_url | safe}}
-							{% endif %}
-						{% endif %}
-
-						
-						<div id="post-text">
-							{% if p.is_image %}
-								<div class="row no-gutters">
-									<div class="col">
-										<a {% if not v or v.newtabexternal %}target="_blank"{% endif %} rel="nofollow noopener noreferrer" href="{{p.realurl(v)}}">
-											<img src="{{p.realurl(v)}}" class="img-fluid" style="max-height:500px" alt="Unable to load image">
-										</a>
-									</div>
-								</div>
-								<pre></pre>
-							{% elif p.is_video %}
-								<div class="row no-gutters">
-									<div class="col">
-										<video controls preload="none" class="vid">
-											<source src="{{p.realurl(v)}}" type="video/mp4">
-										</video>
-									</div>
-								</div>
-								<pre></pre>
-							{% endif %}
-							{{p.realbody(v) | safe}}
-
-							{% if p.is_banned and p.ban_reason %}
-								<div class="text-removed mb-0">removed by @{{p.ban_reason}}</div>
-							{% endif %}
-
-						</div>
-					</div>
+					{%- include "post_body.html" -%}
 
 					{% if v and (v.id==p.author_id or v.admin_level > 2) and not v.is_suspended %}
 						<div id="edit-post-body-{{p.id}}" class="d-none comment-write collapsed child">
@@ -350,9 +292,7 @@
 						{% include 'post_actions.html' %}
 					</ul>
 						</div>
-
 						</div>
-
 					</div>
 					
 					{% if v %}
@@ -374,14 +314,8 @@
 					</div>
 
 					{% endif %}
-
 				</div>
-
-
-
-
 			</div>
-
 		</div>
 
 		{% if not p.is_image and not p.is_video %}
@@ -441,9 +375,7 @@
 				</li>
 			</ul>
 		</div>
-
 	</div>
-
 </div>
 
 {% if v and v.id != p.author_id and p.body %}
