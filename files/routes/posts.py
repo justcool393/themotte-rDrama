@@ -162,6 +162,7 @@ def post_id(pid, anything=None, v=None, sub=None):
 
 	def comment_tree_filter(q: Query) -> Query:
 		q = q.filter(Comment.top_comment_id.in_(pg_top_comment_ids))
+		q = q.filter(Comment.level <= RENDER_DEPTH_LIMIT + 1)
 		q = comment_filter_moderated(q, v)
 		return q
 

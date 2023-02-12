@@ -401,7 +401,6 @@ def all_comments(v):
 
 	def comment_tree_filter(q: Query) -> Query:
 		q = q.filter(Comment.id.in_(idlist))
-		q = q.filter(Comment.level <= RENDER_DEPTH_LIMIT + 1)
 		q = comment_filter_moderated(q, v)
 		q = q.options(selectinload(Comment.post)) # used for post titles
 		return q
