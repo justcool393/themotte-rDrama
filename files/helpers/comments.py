@@ -70,6 +70,7 @@ def update_author_comment_count(comment, delta):
 	g.db.add(comment.author)
 
 def update_ancestor_descendant_counts(comment, delta):
+	return
 	parent = comment.parent_comment_writable
 	if parent is None:
 		return
