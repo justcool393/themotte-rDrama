@@ -2,9 +2,10 @@ from flask import abort, g, request
 
 from files.classes.comment import Comment
 from files.classes.user import User
+from files.helpers.comments import comment_on_publish
 from files.helpers.get import get_comment
 from files.helpers.wrappers import admin_level_required
-from files.__main__ import app
+from files.__main__ import app, cache
 
 @app.get('/testing/make_comments/<int:id>/')
 @admin_level_required(3)
@@ -31,7 +32,10 @@ def testing_make_comments(v: User, id: int):
 		if reply.level == 1: reply.top_comment_id = reply.id
 		else: reply.top_comment_id = c.top_comment_id
 		g.db.add(reply)
+		g.db.flush()
+		comment_on_publish(reply)
 		print(f"making comment with level {reply.level} (TCID {reply.top_comment_id}, parent ID {reply.parent_comment_id})")
 		c = reply
 	g.db.commit()
+	cache.
 	return 'done...'
