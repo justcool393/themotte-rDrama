@@ -34,7 +34,7 @@ def testing_make_comments(v: User, id: int):
 		g.db.add(reply)
 		g.db.flush()
 		comment_on_publish(reply)
-		print(f"making comment with level {reply.level} (TCID {reply.top_comment_id}, parent ID {reply.parent_comment_id})")
+		#print(f"making comment with level {reply.level} (TCID {reply.top_comment_id}, parent ID {reply.parent_comment_id})")
 		c = reply
 	g.db.commit()
 	return f'<h1>done. <a href="/testing/make_comments/{c.id}/?count={count}">make more comments (current id {c.id})</a></h1>'
