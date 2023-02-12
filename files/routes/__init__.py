@@ -16,6 +16,7 @@ from .votes import *
 from .feeds import *
 from .awards import *
 from .volunteer import *
+from .testing import *
 if app.debug:
 	from .dev import *
 # from .subs import *
