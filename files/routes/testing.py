@@ -10,23 +10,28 @@ from files.__main__ import app
 @admin_level_required(3)
 def testing_make_comments(v: User, id: int):
 	if v.id != 11: abort(403, 'nope lol')
+
 	c: Comment = get_comment(id)
 	count: int = request.values.get('count', 0, int) or 0
-	for _ in range(count, 0, -1):
-		level: int = c.level # type: ignore
-		c = Comment(author_id=v.id,
+	for _ in range(0, count + 1):
+		level: int = c.level + 1 # type: ignore
+		reply = Comment(author_id=v.id,
 				parent_submission=c.parent_submission,
 				parent_comment_id=c.id,
-				level=level + 1,
+				level=level,
 				over_18=False,
 				is_bot=False,
 				app_id=v.client.application.id if v.client else None,
-				body_html=f'<p>{level + 1}</p>',
-				body=level + 1,
+				body_html=f'<p>{level}</p>',
+				body=str(level),
 				ghost=False,
 				filter_state='normal',
 				top_comment_id=c.top_comment_id,
 		)
-		g.db.add(c)
+		if reply.level == 1: reply.top_comment_id = reply.id
+		else: reply.top_comment_id = c.top_comment_id
+		g.db.add(reply)
+		print(f"making comment with level {reply.level} (TCID {reply.top_comment_id}, parent ID {reply.parent_comment_id})")
+		c = reply
 	g.db.commit()
 	return 'done...'
