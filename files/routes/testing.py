@@ -5,7 +5,7 @@ from files.classes.user import User
 from files.helpers.comments import comment_on_publish
 from files.helpers.get import get_comment
 from files.helpers.wrappers import admin_level_required
-from files.__main__ import app, cache
+from files.__main__ import app
 
 @app.get('/testing/make_comments/<int:id>/')
 @admin_level_required(3)
@@ -37,5 +37,4 @@ def testing_make_comments(v: User, id: int):
 		print(f"making comment with level {reply.level} (TCID {reply.top_comment_id}, parent ID {reply.parent_comment_id})")
 		c = reply
 	g.db.commit()
-	cache.
 	return 'done...'
