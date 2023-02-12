@@ -24,7 +24,8 @@ def testing_make_comments(v: User, id: int):
 				body_html=f'<p>{level + 1}</p>',
 				body=level + 1,
 				ghost=False,
-				filter_state='normal'
+				filter_state='normal',
+				top_comment_id=c.top_comment_id,
 		)
 		g.db.add(c)
 	g.db.commit()
