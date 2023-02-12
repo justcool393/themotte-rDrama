@@ -37,4 +37,4 @@ def testing_make_comments(v: User, id: int):
 		#print(f"making comment with level {reply.level} (TCID {reply.top_comment_id}, parent ID {reply.parent_comment_id})")
 		c = reply
 	g.db.commit()
-	return f'<h1>done. <a href="/testing/make_comments/{c.id}/?count={count}">make more comments (current id {c.id})</a></h1>'
+	return f'<h1>done (level {c.level}, id {c.id}, count {count}).</h1><h1><a href="/testing/make_comments/{c.id}/?count={count}">make more comments (current id {c.id})</a></h1>'
