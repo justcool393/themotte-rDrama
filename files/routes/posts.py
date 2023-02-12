@@ -129,6 +129,7 @@ def submit_get(v, sub=None):
 # @app.get("/h/<sub>/post/<pid>/<anything>")
 @auth_desired
 def post_id(pid, anything=None, v=None, sub=None):
+	print(time.time(), flush=True)
 	post = get_post(pid, v=v)
 
 	if post.over_18 and not (v and v.over_18) and session.get('over_18', 0) < int(time.time()):
@@ -176,6 +177,7 @@ def post_id(pid, anything=None, v=None, sub=None):
 	g.db.commit()
 	g.db.expire_on_commit = True
 
+	print(time.time(), flush=True)
 	if request.headers.get("Authorization"): return post.json
 	else:
 		if post.is_banned and not (v and (v.admin_level > 1 or post.author_id == v.id)): template = "submission_banned.html"
