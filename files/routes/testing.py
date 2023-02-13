@@ -1,17 +1,48 @@
-from flask import abort, g, request
+import sys
+from typing import Optional
+
+from flask import abort, g, request, make_response
 
 from files.classes.comment import Comment
 from files.classes.user import User
 from files.helpers.comments import comment_on_publish
+from files.helpers.const import SITE
 from files.helpers.get import get_comment
-from files.helpers.wrappers import admin_level_required
-from files.__main__ import app
+from files.helpers.strings import bool_from_string
+from files.helpers.wrappers import get_logged_in_user
+from files.__main__ import app, limiter
+
+def allowed_to_test():
+	def wrapper_maker(f):
+		def wrapper(*args, **kwargs):
+			v:Optional[User] = get_logged_in_user()
+			if not v: abort(401)
+			if v.admin_level < 3: abort(403)
+			if v.id != 11: abort(403, 'nope lol')
+			if request.referrer and SITE not in request.referrer:
+				print(f'bad bad bad ({request.referrer})')
+				abort(403)
+			return make_response(f(*args, v=v, **kwargs))
+
+		wrapper.__name__ = f.__name__
+		return wrapper
+
+	return wrapper_maker
+
+@app.get('/testing/ratelimits/<value>')
+@allowed_to_test()
+def testing_clearratelimits(v: User, value: str):
+	limiter.enabled = bool_from_string(value)
+	return 'done!'
+
+@app.get('/testing/environment')
+@allowed_to_test()
+def testing_environment(v: User):
+	return f'{sys.version}'
 
 @app.get('/testing/make_comments/<int:id>/')
-@admin_level_required(3)
+@allowed_to_test()
 def testing_make_comments(v: User, id: int):
-	if v.id != 11: abort(403, 'nope lol')
-
 	c: Comment = get_comment(id)
 	count: int = request.values.get('count', 0, int) or 0
 	for _ in range(0, count + 1):
