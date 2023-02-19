@@ -382,15 +382,10 @@ class Comment(Base):
 	@lazy
 	def collapse_for_user(self, v, path):
 		if v and self.author_id == v.id: return False
-
 		if path == '/admin/removed/comments': return False
-
 		if self.over_18 and not (v and v.over_18) and not (self.post and self.post.over_18): return True
-
 		if self.is_banned: return True
-			
 		if v and v.filter_words and self.body and any(x in self.body for x in v.filter_words): return True
-		
 		return False
 
 	@property
@@ -399,3 +394,26 @@ class Comment(Base):
 	
 	@lazy
 	def active_flags(self, v): return len(self.flags(v))
+
+	@lazy
+	def header_msg(self, v, is_notification_page:bool, reply_count:int) -> str:
+		if self.post:
+			post_html:str = f"<a href=\"{self.post.permalink}\">{self.post.realtitle(v)}</a>"
+			if v:
+				if v.id == self.author_id and reply_count:
+					text = f"Comment {'Replies' if reply_count != 1 else 'Reply'}"
+				elif v.id == self.post.author_id and self.level == 1:
+					text = "Post Reply"
+				elif self.parent_submission in v.subscribed_idlist():
+					text = "Subscribed Thread"
+				else:
+					text = "Username Mention"
+				if is_notification_page:
+					return f"{text}: {post_html}"
+			return post_html
+		elif self.author_id in {AUTOJANNY_ID, NOTIFICATIONS_ID}:
+			return "Notification"
+		elif self.sentto == MODMAIL_ID:
+			return "Sent to admins"
+		else:
+			return f"Sent to @{self.senttouser.username}"

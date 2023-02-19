@@ -1,0 +1,107 @@
+<div id="comment-{{c.id}}-actions" class="comment-actions{% if voted==1 %} upvoted{% elif voted==-1 %} downvoted{% endif %}">
+	<div class="d-md-none mt-2">
+		<div class="post-actions">
+			<ul class="list-inline text-right d-flex">
+				<li class="list-inline-item mr-auto">
+					{% if v and v.admin_level > 1 %}
+						<a role="button" data-bs-toggle="modal" data-bs-target="#adminModal-{{c.id}}">
+							<i class="fas fa-broom"></i>
+						</a>
+					{% endif %}
+				</li>                      
+				{% if v %}
+					<a class="list-inline-item mr-3" role="button" onclick="openReplyBox('reply-to-{{c.id}}')"><i class="fas fa-reply" style="margin-top:0.35rem"></i></a>
+				{% endif %}
+				<li class="list-inline-item">
+					<a role="button" data-bs-toggle="modal" data-bs-target="#actionsModal-{{c.id}}">
+						<i class="fas fa-ellipsis-h mt-1"></i>
+					</a>
+				</li>
+				{% if v and request.path.startswith('/@') and v.admin_level < 2 %}
+					<li id="voting-{{c.id}}-mobile" class="voting list-inline-item d-md-none">
+						{% if voted==1 %}
+							<span class="mr-2 arrow-up comment-{{c.id}}-up active"></span>
+						{% endif %}
+				
+						<span class="comment-mobile-score-{{c.id}} score comment-score-{{c.id}} {% if voted==1 %}score-up{% elif voted==-1%}score-down{% endif %}{% if c.controversial %} controversial{% endif %}"{% if not c.is_banned %} data-bs-toggle="tooltip" data-bs-placement="top" title="+{{ups}} | -{{downs}}"{% endif %}>{{score}}</span>
+				
+						{% if voted==-1 %}
+							<span class="ml-2 my-0 arrow-down comment-{{c.id}}-down active"></span>
+						{% endif %}
+					</li>
+				{% elif v %}
+					<li id="voting-{{c.id}}-mobile" class="voting list-inline-item d-md-none">
+						<span tabindex="0" role="button" onclick="vote('comment-mobile', '{{c.id}}', '1')" class="comment-mobile-{{c.id}}-up mx-0 pr-1 arrow-up upvote-button comment-{{c.id}}-up {% if voted==1 %}active{% endif %}"></span>
+						<span class="comment-mobile-score-{{c.id}} score comment-score-{{c.id}} {% if voted==1 %}score-up{% elif voted==-1%}score-down{% endif %}{% if c.controversial %} controversial{% endif %}"{% if not c.is_banned %} data-bs-toggle="tooltip" data-bs-placement="top" title="+{{ups}} | -{{downs}}"{% endif %}>{{score}}</span>
+						<span {% if environ.get('DISABLE_DOWNVOTES') == '1' %}style="display:None!important"{% endif %}  tabindex="0" role="button" onclick="vote('comment-mobile', '{{c.id}}', '-1')" class="comment-mobile-{{c.id}}-down mx-0 pl-1 my-0 arrow-down downvote-button comment-{{c.id}}-down {% if voted==-1 %}active{% endif %}">
+						</span>
+					</li>
+				{% else %}
+					<li id="voting-{{c.id}}-mobile" class="voting list-inline-item d-md-none">
+						<span tabindex="0" class="arrow-{{c.id}}-mobile-up mx-0 pr-1 arrow-mobile-up" onclick="location.href='/login';">
+							<i class="fas fa-arrow-alt-up mx-0" aria-hidden="true"></i>
+						</span>
+						<span  class="comment-mobile-score-{{c.id}} score{% if c.controversial %} controversial{% endif %}"{% if not c.is_banned %} data-bs-toggle="tooltip" data-bs-placement="top" title="+{{ups}} | -{{downs}}"{% endif %}>{{score}}</span>
+						<span  tabindex="0" class="arrow-{{c.id}}-mobile-down arrow-mobile-down mx-0 pl-1 my-0" onclick="location.href='/login';">
+							<i class="fas fa-arrow-alt-down mx-0" aria-hidden="true"></i>
+						</span>
+					</li>
+				{% endif %}
+				</ul>
+			</div>
+		</div>
+<ul class="d-none d-md-flex list-inline text-right text-md-left"><li>
+	{% if v and request.path.startswith('/@') and v.admin_level < 2%}
+		{% if voted==1 %}
+			<button class="btn caction p-0 m-0 pr-3 nobackground arrow-up mx-0 comment-{{c.id}}-up active"></button>
+		{% endif %}
+	{% elif v %}
+		<button tabindex="0" role="button" onclick="vote('comment', '{{c.id}}', '1')" class="comment-{{c.id}}-up btn caction p-0 m-0 pr-3 nobackground arrow-up upvote-button comment-{{c.id}}-up {% if voted==1 %}active{% endif %}"></button>
+	{% else %}
+		<button tabindex="0" class="comment-{{c.id}}-up btn caction nobackground p-0 m-0 pr-3 arrow-up" onclick="location.href='/login';"></button>
+	{% endif %}
+	
+	<button class="btn caction nobackground p-0 m-0">
+		<span data-bs-toggle="tooltip" data-bs-placement="top" title="+{{ups}} | -{{downs}}"  class="comment-score-{{c.id}} score comment-score-{{c.id}} {% if voted==1 %}score-up{% elif voted==-1%}score-down{% endif %}{% if c.controversial %} controversial{% endif %}">{{score}}</span>
+	</button>
+	
+	{% if v and request.path.startswith('/@') and v.admin_level < 2 %}
+		{% if voted==-1 %}
+			<li class=" arrow-down py-0 m-0 px-3 comment-{{c.id}}-down active"></li>
+		{% endif %}
+	{% elif v %}
+		<button {% if environ.get('DISABLE_DOWNVOTES') == '1' %}style="display:None!important"{% endif %}  tabindex="0" role="button" onclick="vote('comment', '{{c.id}}', '-1')" class="comment-{{c.id}}-down btn caction py-0 m-0 px-3 nobackground arrow-down downvote-button comment-{{c.id}}-down {% if voted==-1 %}active{% endif %}"></button>
+	{% else %}
+		<button {% if environ.get('DISABLE_DOWNVOTES') == '1' %}style="display:None!important"{% endif %}  tabindex="0" role="button" class="comment-{{c.id}}-down btn caction py-0 m-0 px-3 nobackground arrow-down" onclick="location.href='/login';"></button>
+	{% endif %}
+	
+	{% if v and v.admin_level >= 2 %}<a href="/votes?link={{c.fullname}}" class="btn caction nobackground px-1 text-muted"><i class="fas fa-arrows-v"></i>Votes</a>{% endif %}
+	<a class="btn caction nobackground px-1 text-muted" href="{{c.permalink}}"><i class="fas fa-book-open"></i>Context</a>
+	<button class="btn caction py-0 nobackground px-1 text-muted copy-link" data-clipboard-text="{{c.permalink}}"><i class="fas fa-copy"></i>Copy link</button>
+	{% if v %}
+		<button class="btn caction py-0 nobackground px-1 text-muted" role="button" onclick="openReplyBox('reply-to-{{c.id}}')"><i class="fas fa-reply" aria-hidden="true"></i>Reply</button>
+		<button class="btn caction py-0 nobackground px-1 text-muted" data-bs-toggle="modal" data-bs-target="#reportCommentModal" onclick="report_commentModal('{{c.id}}','{{c.author_name}}',)"><i class="fas fa-flag fa-fw"></i>Report</button>
+		<button id="unsave-{{c.id}}" class="btn caction py-0 nobackground px-1 {% if c.id in v.saved_comment_idlist() %}d-md-inline-block{% endif %} text-muted d-none" role="button" onclick="post_toast3(this,'/unsave_comment/{{c.id}}','save-{{c.id}}','unsave-{{c.id}}')"><i class="fas fa-save"></i>Unsave</button>
+		<button id="save-{{c.id}}" class="btn caction py-0 nobackground px-1 {% if c.id not in v.saved_comment_idlist() %}d-md-inline-block{% endif %} text-muted d-none" role="button" onclick="post_toast3(this,'/save_comment/{{c.id}}','save-{{c.id}}','unsave-{{c.id}}')"><i class="fas fa-save"></i>Save</button>
+	{% endif %}
+
+	{% if c.parent_submission %}
+		{% if v and c.author_id == v.id %}
+			<button class="btn caction py-0 nobackground px-1 text-muted" onclick="toggleEdit('{{c.id}}')"><i class="fas fa-edit fa-fw"></i>Edit</button>
+			
+			<button id="undelete-{{c.id}}" class="btn caction py-0 nobackground px-1 text-muted {% if not c.deleted_utc %}d-none{% endif %}" onclick="post_toast2(this,'/undelete/comment/{{c.id}}','delete-{{c.id}}','undelete-{{c.id}}');document.getElementById('comment-{{c.id}}').classList.remove('deleted')"><i class="fas fa-trash-alt fa-fw"></i>Undelete</button>
+
+			<button id="delete-{{c.id}}" class="btn caction py-0 nobackground px-1 text-muted {% if c.deleted_utc %}d-none{% endif %}" data-bs-toggle="modal" data-bs-target="#deleteCommentModal" onclick="delete_commentModal('{{c.id}}')"><i class="fas fa-trash-alt fa-fw"></i>Delete</button>
+		{% elif v and c.body %}
+			<button class="btn caction py-0 nobackground px-1 text-muted" onclick="expandMarkdown(this,'{{c.id}}')"><i class="fas text-expand-icon-{{c.id}} fa-expand-alt"></i><span>View source</span></button>
+		{% endif %}
+	{% endif %}
+
+	{% if v and v.admin_level > 1 and c.filter_state == 'filtered' %}
+		<button class="btn" role="button" id="filter-approve" onclick="filter_new_comment_status({{ c.id }}, 'normal')"><span>Approve</span></button>
+		<button class="btn" role="button" id="filter-remove" onclick="filter_new_comment_status({{ c.id }}, 'removed')"><span>Remove</span></button>
+	{% endif %}
+	{%- include 'component/comment/moderation_dropdown_menu_desktop.html' -%}
+	</li>
+</ul>
+</div>
