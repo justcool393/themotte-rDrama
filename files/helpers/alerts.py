@@ -9,11 +9,13 @@ def create_comment(text_html, autojanny=False):
 	if autojanny: author_id = AUTOJANNY_ID
 	else: author_id = NOTIFICATIONS_ID
 
-	new_comment = Comment(author_id=author_id,
-							parent_submission=None,
-							body_html=text_html,
-							distinguish_level=6,
-							state_mod=StateMod.VISIBLE,)
+	new_comment = Comment(
+		author_id=author_id,
+		parent_submission=None,
+		body_html=text_html,
+		distinguish_level=6,
+		state_mod=StateMod.VISIBLE,
+	)
 	g.db.add(new_comment)
 	g.db.flush()
 

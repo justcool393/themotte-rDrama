@@ -564,6 +564,13 @@ def submit_post(v):
 	assert len(validated_post.title) <= MAX_TITLE_LENGTH
 	assert len(validated_post.body) <= SUBMISSION_BODY_LENGTH_MAXIMUM
 
+	state_mod: StateMod = StateMod.VISIBLE
+
+	if v.shadowbanned:
+		state_mod = StateMod.SHADOWBANNED
+	elif app.config['SETTINGS']['FilterNewPosts'] and v.admin_level <= PERMS['POST_FILTER_BYPASS']:
+		state_mod = StateMod.FILTERED
+
 	post = Submission(
 		private=bool(request.values.get("private","")),
 		club=club,
@@ -578,7 +585,7 @@ def submit_post(v):
 		title=validated_post.title,
 		title_html=validated_post.title_html,
 		ghost=False,
-		state_mod=StateMod.FILTERED if v.admin_level == 0 and app.config['SETTINGS']['FilterNewPosts'] else StateMod.VISIBLE,
+		state_mod=state_mod,
 		thumburl=validated_post.thumburl
 	)
 	post.submit(g.db)

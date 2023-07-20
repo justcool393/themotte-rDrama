@@ -63,10 +63,12 @@ def update_post_comment_count(comment, delta):
 
 def update_author_comment_count(comment, delta):
 	author = comment.author
+	# We include shadowbanned comments here so that a trivial "am I
+	# shadowbanned" check isn't possible.
 	comment.author.comment_count = g.db.query(Comment).filter(
 		Comment.author_id == comment.author_id,
 		Comment.parent_submission != None,
-		Comment.state_mod == StateMod.VISIBLE,
+		(Comment.state_mod == StateMod.VISIBLE | Comment.state_mod == StateMod.SHADOWBANNED),
 		Comment.state_user_deleted_utc == None,
 	).count()
 	g.db.add(comment.author)

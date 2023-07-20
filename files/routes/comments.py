@@ -201,35 +201,42 @@ def api_comment(v):
 
 			abort(403, "Too much spam!")
 
-	is_filtered = v.should_comments_be_filtered()
+	state_mod: StateMod = StateMod.VISIBLE
 
-	c = Comment(author_id=v.id,
-				parent_submission=parent_post.id,
-				parent_comment_id=parent_comment_id,
-				level=level,
-				over_18=parent_post.over_18 or request.values.get("over_18")=="true",
-				is_bot=is_bot,
-				app_id=v.client.application.id if v.client else None,
-				body_html=body_html,
-				body=body[:COMMENT_BODY_LENGTH_MAXIMUM],
-				ghost=parent_post.ghost,
-				state_mod=StateMod.FILTERED if is_filtered else StateMod.VISIBLE,
-				)
+	if v.shadowbanned:
+		state_mod = StateMod.SHADOWBANNED
+	elif v.should_comments_be_filtered():
+		state_mod = StateMod.FILTERED
 
-	c.upvotes = 1
+	c = Comment(
+		author_id=v.id,
+		parent_submission=parent_post.id,
+		parent_comment_id=parent_comment_id,
+		level=level,
+		over_18=parent_post.over_18 or request.values.get("over_18")=="true",
+		is_bot=is_bot,
+		app_id=v.client.application.id if v.client else None,
+		body_html=body_html,
+		body=body[:COMMENT_BODY_LENGTH_MAXIMUM],
+		ghost=parent_post.ghost,
+		state_mod=state_mod,
+		upvotes=1,
+	)
+
 	g.db.add(c)
 	g.db.flush()
 
 	if c.level == 1: c.top_comment_id = c.id
 	else: c.top_comment_id = parent.top_comment_id
 
-	if not v.shadowbanned and not is_filtered:
+	if state_mod == StateMod.VISIBLE:
 		comment_on_publish(c)
 
-	vote = CommentVote(user_id=v.id,
-						 comment_id=c.id,
-						 vote_type=1,
-						 )
+	vote = CommentVote(
+		user_id=v.id,
+		comment_id=c.id,
+		vote_type=1,
+		)
 	g.db.add(vote)
 
 	c.voted = 1

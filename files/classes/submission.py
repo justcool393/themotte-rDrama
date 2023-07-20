@@ -100,10 +100,14 @@ class Submission(CreatedBase):
 		)
 		db.add(vote)
 		author = self.author
-		author.post_count = db.query(Submission.id).filter_by(
-			author_id=self.author_id, 
-			state_mod=StateMod.VISIBLE,
-			state_user_deleted_utc=None).count()
+		# We include shadowbanned posts in the user count people don't
+		# trivially see they've been shadowbanned by checking the post
+		# counter. This really ought to be a function somewhere though
+		author.post_count = db.query(Submission.id).filter(
+			Submission.id == self.author_id,
+			(Submission.state_mod == StateMod.VISIBLE | Submission.state_mod == StateMod.SHADOWBANNED),
+			Submission.state_user_deleted_utc == None,
+		).count()
 		db.add(author)
 
 	def publish(self):

@@ -451,13 +451,19 @@ def message2(v, username):
 
 	if existing: abort(403, "Message already exists.")
 
-	c = Comment(author_id=v.id,
-						  parent_submission=None,
-						  level=1,
-						  sentto=user.id,
-						  body_html=body_html,
-						  state_mod=StateMod.VISIBLE,
-						  )
+	state_mod: StateMod = StateMod.VISIBLE
+
+	if v.shadowbanned:
+		state_mod = StateMod.SHADOWBANNED
+
+	c = Comment(
+		author_id=v.id,
+		parent_submission=None,
+		level=1,
+		sentto=user.id,
+		body_html=body_html,
+		state_mod=state_mod,
+	)
 	g.db.add(c)
 	g.db.flush()
 
@@ -506,16 +512,21 @@ def messagereply(v):
 			body_html += f'<img data-bs-target="#expandImageModal" data-bs-toggle="modal" onclick="expandDesktopImage(this.src)" class="img" src="{url}" loading="lazy">'
 		else: abort(400, "Image files only")
 
+	state_mod: StateMod = StateMod.VISIBLE
 
-	c = Comment(author_id=v.id,
-							parent_submission=None,
-							parent_comment_id=id,
-							top_comment_id=parent.top_comment_id,
-							level=parent.level + 1,
-							sentto=user_id,
-							body_html=body_html,
-							state_mod=StateMod.VISIBLE,
-							)
+	if v.shadowbanned:
+		state_mod = StateMod.SHADOWBANNED
+
+	c = Comment(
+		author_id=v.id,
+		parent_submission=None,
+		parent_comment_id=id,
+		top_comment_id=parent.top_comment_id,
+		level=parent.level + 1,
+		sentto=user_id,
+		body_html=body_html,
+		state_mod=state_mod,
+	)
 	g.db.add(c)
 	g.db.flush()
 

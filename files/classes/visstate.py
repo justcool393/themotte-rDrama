@@ -15,6 +15,12 @@ class StateMod(enum.Enum):
     VISIBLE = 0
     FILTERED = 1
     REMOVED = 2
+    SHADOWBANNED = 3
+    '''
+	Like removed, but indicates that this removal was created as a part of a
+	shadowban. Useful for distinguishing being admin removed content and
+	content that was removed as part of the shadowban system.
+	'''
 
 class StateReport(enum.Enum):
     UNREPORTED = 0
@@ -34,9 +40,7 @@ class VisibilityState:
 	state_mod: StateMod
 	state_mod_set_by: str | None
 	state_report: StateReport
-	state_mod_set_by: str | None
 	deleted: bool
-	op_shadowbanned: bool
 	op_id: int
 	op_name_safe: str
 
@@ -49,6 +53,10 @@ class VisibilityState:
 		return self.state_mod == StateMod.FILTERED
 	
 	@property
+	def shadowbanned(self) -> bool:
+		return self.state_mod == StateMod.SHADOWBANNED
+	
+	@property
 	def reports_ignored(self) -> bool:
 		return self.state_report == StateReport.IGNORED
 
@@ -59,9 +67,8 @@ class VisibilityState:
 			state_mod_set_by=target.state_mod_set_by, # type: ignore
 			state_report=target.state_report,
 			deleted=bool(target.state_user_deleted_utc != None),
-			op_shadowbanned=bool(target.author.shadowbanned),
 			op_id=target.author_id,  # type: ignore
-			op_name_safe=target.author_name
+			op_name_safe=target.author_name,
 		)
 
 	def moderated_body(self, v: User | None) -> str | None:
@@ -88,7 +95,7 @@ class VisibilityState:
 		if v and v.id == self.op_id:
 			return True, "This shouldn't be here, please report it!"
 		if (self.removed and not can_moderate) or \
-				(self.op_shadowbanned and not can_shadowban):
+				(self.shadowbanned and not can_shadowban):
 			msg: str = 'Removed'
 			if self.state_mod_set_by:
 				msg = f'Removed by @{self.state_mod_set_by}'
@@ -109,15 +116,12 @@ class VisibilityState:
 	
 	def appear_removed(self, v: User | None) -> bool:
 		if self.removed: return True
-		if not self.op_shadowbanned: return False
+		if not self.shadowbanned: return False
 		return (not v) or bool(v.admin_level < PERMS['USER_SHADOWBAN'])
 	
 	@property
 	def publicly_visible(self) -> bool:
-		return all(
-			not state for state in 
-			[self.deleted, self.removed, self.filtered, self.op_shadowbanned]
-		)
+		return self.state_mod != StateMod.VISIBLE and not self.deleted
 	
 	@property
 	def explicitly_moderated(self) -> bool:

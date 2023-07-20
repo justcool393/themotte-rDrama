@@ -155,19 +155,17 @@ class Comment(CreatedBase):
 		elif self.parent_submission: return f"post_{self.parent_submission}"
 
 	def replies(self, user):
-		if self.replies2 != None: return [x for x in self.replies2 if not x.author.shadowbanned]
+		if self.replies2 != None: return [x for x in self.replies2]
 		author_id = None
 		if user:
 			author_id = user.id
 		if not self.parent_submission:
 			return sorted((x for x in self.child_comments
 				if x.author
-					and (x.state_mod == StateMod.VISIBLE or x.author_id == author_id)
-					and not x.author.shadowbanned),
+					and (x.state_mod == StateMod.VISIBLE or x.author_id == author_id)),
 				key=lambda x: x.created_utc)
 		return sorted((x for x in self.child_comments
 			if x.author
-				and not x.author.shadowbanned
 				and (x.state_mod == StateMod.VISIBLE or x.author_id == author_id)),
 			key=lambda x: x.created_utc, reverse=True)
 
